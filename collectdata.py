@@ -29,6 +29,7 @@ ap.add_argument("-loop", "--loop",type=bool, required=False, help="loops with ha
 ap.add_argument("-cloud", "--cloud",type=bool, required=False, help="moving cloud")
 
 ap.add_argument("-randomcolor", "--randomcolor",type=bool, required=False, default=False, help="set true for random color")
+ap.add_argument("-draw_black", "--draw_black",type=bool, required=False, default=False, help="draw is black color")
 ap.add_argument("-thickness", "--thickness",type=int, required=False, default=1, help="specify thickness")
 ap.add_argument("-opacity", "--opacity",type=float, required=False, default=0.6, help="specify opacity value [0-1], i.e 0.6")
 
@@ -85,6 +86,8 @@ def opacityart(image, frameDataDict):
     
     if args["randomcolor"]:
         colorvalue = (randrange(255), randrange(255), randrange(255))
+    elif args["draw_black"]:
+        colorvalue = (10, 10, 10)
     else:
         colorvalue = (255, 255, 255)
 
@@ -101,6 +104,8 @@ def opacityWithTrail(image, frameDataDict, RFN):
     
     if args["randomcolor"]:
         colorvalue = (randrange(255), randrange(255), randrange(255))
+    elif args["draw_black"]:
+        colorvalue = (10, 10, 10)
     else:
         colorvalue = (255, 255, 255)
     thickness = args["thickness"]
@@ -150,6 +155,8 @@ def opacityWithLoop(image, frameDataDict, RFN):
     
     if args["randomcolor"]:
         colorvalue = (randrange(255), randrange(255), randrange(255))
+    elif args["draw_black"]:
+        colorvalue = (10, 10, 10)
     else:
         colorvalue = (255, 255, 255)
     thickness = args["thickness"]
@@ -186,6 +193,8 @@ def Cloud(image, frameDataDict, RFN):
 
     if args["randomcolor"]:
         colorvalue = (randrange(255), randrange(255), randrange(255))
+    elif args["draw_black"]:
+        colorvalue = (10, 10, 10)
     else:
         colorvalue = (255, 255, 255)
     thickness = 150
@@ -226,6 +235,8 @@ def opacityWithSkeleton(image, frameDataDict):
 
     if args["randomcolor"]:
         colorvalue = (randrange(255), randrange(255), randrange(255))
+    elif args["draw_black"]:
+        colorvalue = (10, 10, 10)
     else:
         colorvalue = (255, 255, 255)
     
@@ -603,5 +614,4 @@ if __name__== "__main__":
         TrailList.clear()
         TrailList2.clear()
         TrailList3.clear()
-        
     '''
