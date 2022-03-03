@@ -32,6 +32,7 @@ ap.add_argument("-randomcolor", "--randomcolor",type=bool, required=False, defau
 ap.add_argument("-draw_black", "--draw_black",type=bool, required=False, default=False, help="draw is black color")
 ap.add_argument("-thickness", "--thickness",type=int, required=False, default=1, help="specify thickness")
 ap.add_argument("-opacity", "--opacity",type=float, required=False, default=0.6, help="specify opacity value [0-1], i.e 0.6")
+ap.add_argument("-multicolor", "--multicolor", type=bool, required=False, help="color changes in consistent intervals")
 
 # ap.add_argument("-a", "--audio", required=False, help="extracted audio")
 # ap.add_argument("-o", "--output", required=False, help="path to the output video")
@@ -53,7 +54,6 @@ for i in jids:
 # d = {0: {}, 11: {}, 12: {}, 13: {}, 14: {}, 15: {}, 16: {}, 17: {}, 18: {}, 23: {}, 24: {}, 25: {}, 26: {}, 27: {}, 28: {}, 31: {}, 32: {}}
 
 signalXYDict = {}
- 
 
 # draw hybrid skeleton (triangle + lines)
 def drawHybridSkeleton(image, frameDataDict, color):
@@ -83,14 +83,15 @@ def drawHybridSkeleton(image, frameDataDict, color):
 
 # draw opacity
 def opacityart(image, frameDataDict):
-    
+
+    colorvalue=color
     if args["randomcolor"]:
-        colorvalue = (randrange(255), randrange(255), randrange(255))
+         colorvalue = (randrange(255), randrange(255), randrange(255))
     elif args["draw_black"]:
         colorvalue = (10, 10, 10)
     else:
-        colorvalue = (255, 255, 255)
-
+        colorvalue if args["multicolor"] else (255, 255, 255)
+ 
     overlay = image.copy()
     # manipulate overlay
     drawHybridSkeleton(overlay, frameDataDict, colorvalue)
@@ -99,15 +100,11 @@ def opacityart(image, frameDataDict):
     beta = 1-alpha
     cv2.addWeighted(overlay, alpha, image, beta, 0.0 , image)
 
+
 # opacity with trail
 def opacityWithTrail(image, frameDataDict, RFN):
     
-    if args["randomcolor"]:
-        colorvalue = (randrange(255), randrange(255), randrange(255))
-    elif args["draw_black"]:
-        colorvalue = (10, 10, 10)
-    else:
-        colorvalue = (255, 255, 255)
+    colorvalue=color
     thickness = args["thickness"]
     overlay = image.copy()
 
@@ -117,11 +114,17 @@ def opacityWithTrail(image, frameDataDict, RFN):
 
     for i in range(0, RFN):
             TrailList.appendleft(signalXYDict[0][i])
-            TrailList2.appendleft(signalXYDict[31][i])
-            TrailList3.appendleft(signalXYDict[32][i])
+            TrailList2.appendleft(signalXYDict[17][i])
+            TrailList3.appendleft(signalXYDict[18][i])
     
     for i in range(0, len(TrailList)):
         # for every 10 frames, change the color.
+        if args["randomcolor"]:
+            colorvalue = (randrange(255), randrange(255), randrange(255))
+        elif args["draw_black"]:
+            colorvalue = (10, 10, 10)
+        else:
+            colorvalue if args["multicolor"] else (255, 255, 255)
         
         if i > 0:  # This is for the Trail curve only.
             # r = abs(TrailList[i-1][0] - TrailList[i-1][0])  # only a dot instead of circle
@@ -153,12 +156,7 @@ def opacityWithTrail(image, frameDataDict, RFN):
 
 def opacityWithLoop(image, frameDataDict, RFN):
     
-    if args["randomcolor"]:
-        colorvalue = (randrange(255), randrange(255), randrange(255))
-    elif args["draw_black"]:
-        colorvalue = (10, 10, 10)
-    else:
-        colorvalue = (255, 255, 255)
+    colorvalue=color
     thickness = args["thickness"]
     overlay = image.copy()
 
@@ -173,6 +171,14 @@ def opacityWithLoop(image, frameDataDict, RFN):
     
     for i in range(0, len(TrailList)):
         # for every 10 frames, change the color. have not been implemented.
+    
+        if args["randomcolor"]:
+            colorvalue = (randrange(255), randrange(255), randrange(255))
+        elif args["draw_black"]:
+            colorvalue = (10, 10, 10)
+        else:
+            colorvalue if args["multicolor"] else (255, 255, 255)
+        
 
         if TrailList[i] is not None and TrailList[i-1] is not None:  # This is for the loop animation
             
@@ -191,12 +197,7 @@ def opacityWithLoop(image, frameDataDict, RFN):
 
 def Cloud(image, frameDataDict, RFN):
 
-    if args["randomcolor"]:
-        colorvalue = (randrange(255), randrange(255), randrange(255))
-    elif args["draw_black"]:
-        colorvalue = (10, 10, 10)
-    else:
-        colorvalue = (255, 255, 255)
+    colorvalue=color
     thickness = 150
     overlay = image.copy()
 
@@ -211,6 +212,14 @@ def Cloud(image, frameDataDict, RFN):
     
     for i in range(0, len(TrailList)):
         # for every 10 frames, change the color. have not been implemented.
+
+        if args["randomcolor"]:
+            colorvalue = (randrange(255), randrange(255), randrange(255))
+        elif args["draw_black"]:
+            colorvalue = (10, 10, 10)
+        else:
+            colorvalue if args["multicolor"] else (255, 255, 255)
+            
 
         if TrailList[i] is not None and TrailList[i-1] is not None:  # This is for the loop animation
             
@@ -233,12 +242,13 @@ def opacityWithSkeleton(image, frameDataDict):
     input: frameDataDict -> {0: (292, 289), 1: (326, 291), 2: (296, 296), 3: (320, 285), .... 16:(x,y)}
     """
 
+    colorvalue=color
     if args["randomcolor"]:
-        colorvalue = (randrange(255), randrange(255), randrange(255))
+         colorvalue = (randrange(255), randrange(255), randrange(255))
     elif args["draw_black"]:
         colorvalue = (10, 10, 10)
     else:
-        colorvalue = (255, 255, 255)
+        colorvalue if args["multicolor"] else (255, 255, 255)
     
     thickness = args["thickness"]
 
@@ -358,7 +368,7 @@ def Body(image, frameDataDict):
     overlay = image.copy()  # this is my raw image now with the ape.
 
     # manipulate overlay
-    drawHybridSkeleton(image, frameDataDict)  # manipulated image
+    drawHybridSkeleton(image, frameDataDict)  # manipulated image ;
 
     alpha = 0.8
     beta = 1-alpha
@@ -506,6 +516,8 @@ if __name__== "__main__":
 
     # ---------------open read the video again for rendering this time ---------------
     
+    c = (randrange(255), randrange(255), randrange(255))
+
     cap2 = cv2.VideoCapture(args["input"])
     while cap2.isOpened():
         success, image2 = cap2.read()
@@ -519,6 +531,14 @@ if __name__== "__main__":
         image2 = cv2.cvtColor(cv2.flip(image2, 1), cv2.COLOR_BGR2RGB)
         image2.flags.writeable = False
         image2 = cv2.cvtColor(image2, cv2.COLOR_RGB2BGR)
+
+        if args["multicolor"]:
+            '''
+            change color every x frames
+            '''
+            x: int = 60
+            color = (randrange(255), randrange(255), randrange(255)) if RFN%x == 0 else c
+            c=color
 
         # print(dataForRendering[RFN])
 
@@ -551,7 +571,7 @@ if __name__== "__main__":
         
         if args["cloud"]:
             Cloud(image2, dataForRendering[RFN], RFN)
-
+        
         # if args["art"]:
         # drawHybridSkeleton(image2, dataForRendering[RFN])
 
@@ -577,41 +597,4 @@ if __name__== "__main__":
     
     
     
-    
     # ------ DONE -------
-
-    
-    '''
-        for i in range(0, RFN):
-            TrailList.appendleft(signalXYDict[0][i])
-            TrailList2.appendleft(signalXYDict[17][i])
-            TrailList3.appendleft(signalXYDict[18][i])
-        # print(TrailList)
-
-        # draw Trail here
-        for i in range(0, len(TrailList)):
-            #if TrailList[i] is not None and TrailList[i-1] is not None:  # This is for the loop animation
-            if i > 0:  # This is for the Trail curve only.
-
-                # r = abs(TrailList[i-1][0] - TrailList[i-1][0])  # only a dot instead of circle
-                r = int(abs(TrailList[i-1][0] - TrailList[i][0])/2)
-                #cv2.line(image2, TrailList[i], TrailList[i-1], (255, 255, 255), 2, lineType=cv2.LINE_AA)
-                #cv2.line(image2, TrailList[i], TrailList[i-1], (0, 0, 0), 1, lineType=cv2.LINE_AA)
-                
-                cv2.line(image2, TrailList2[i], TrailList2[i-1], (255, 255, 255), 2, lineType=cv2.LINE_AA)
-                # cv2.line(image2, TrailList2[i], TrailList2[i-1], (0, 0, 0), 1, lineType=cv2.LINE_AA)
-
-                cv2.line(image2, TrailList3[i], TrailList3[i-1], (255, 255, 255), 2, lineType=cv2.LINE_AA)
-                
-                # cv2.line(image2, TrailList3[i], TrailList3[i-1], (0, 0, 0), 1, lineType=cv2.LINE_AA)
-
-                #cv2.circle(image2, (TrailList[i-1][0]+5,TrailList[i][1]), r, (255, 255, 255), -1)
-                # cv2.line(image2, (TrailList[i][0]+5,TrailList[i][1]), (TrailList[i-1][0]+5,TrailList[i][1]) , (255, 255, 255), 1, lineType=cv2.LINE_AA)  # those dashed lines
-                #cv2.line(image2, TrailList2[i], TrailList2[i-1], (255, 255, 255), 1, lineType=cv2.LINE_AA)
-                cv2.circle(image2, (TrailList2[i-1][0]+5,TrailList2[i][1]), r, (255, 255, 255), 1)
-                cv2.circle(image2, (TrailList3[i-1][0]+5,TrailList3[i][1]), r, (255, 255, 255), 1)
-                # cv2.line(image2, (TrailList2[i][0]+5,TrailList2[i][1]), (TrailList2[i-1][0]+5,TrailList2[i][1]) , (255, 255, 255), 1, lineType=cv2.LINE_AA)
-        TrailList.clear()
-        TrailList2.clear()
-        TrailList3.clear()
-    '''
