@@ -395,7 +395,7 @@ def Traceaa(jointid):
             if id == jointid:
                 ptsTail1.appendleft((cx, cy))
                 for i in range(1, len(ptsTail1)):
-                    # if either of th etracked points are none, ignore them.
+                    # if either of the tracked points are none, ignore them.
                     if ptsTail1[i-1] is None or ptsTail1[i] is None:
                         continue
                     # otherwise compute thickness of line n draw connecting lines

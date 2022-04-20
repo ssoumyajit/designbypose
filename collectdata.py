@@ -27,7 +27,9 @@ ap.add_argument("-body", "--body",type=bool, required=False, help="body of ellip
 ap.add_argument("-trail", "--trail",type=bool, required=False, help="trails of hands")
 ap.add_argument("-loop", "--loop",type=bool, required=False, help="loops with hands")
 ap.add_argument("-cloud", "--cloud",type=bool, required=False, help="moving cloud")
-
+ap.add_argument("-maedalinesvl", "--maedalinesvl",type=bool, required=False, help="vertical lower half lines")
+ap.add_argument("-maedalineshl", "--maedalineshl",type=bool, required=False, help="horizontal half lines")
+ap.add_argument("-abstractbody", "--abstractbody", type=bool, required=False, help="abstract body using trinagles")
 ap.add_argument("-randomcolor", "--randomcolor",type=bool, required=False, default=False, help="set true for random color")
 ap.add_argument("-draw_black", "--draw_black",type=bool, required=False, default=False, help="draw is black color")
 ap.add_argument("-thickness", "--thickness",type=int, required=False, default=1, help="specify thickness")
@@ -45,8 +47,12 @@ cap = cv2.VideoCapture(args["input"])
 out = cv2.VideoWriter("edited.mov", cv2.VideoWriter_fourcc(*"MJPG"), \
     args["fps"], (int(cap.get(3)), int(cap.get(4))))
 
+width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # 3
+height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # 4
+
 mp_pose = mp.solutions.pose
 jids = [0,11,12,13,14,15,16,17,18,23,24,25,26,27,28,31,32]
+    #   0 1  2  3  4  5  6   7  8  9 10 11 12 13 14 15 16
 
 rawdataDict = {}
 for i in jids:
@@ -63,7 +69,7 @@ def drawHybridSkeleton(image, frameDataDict, color):
     def drawTriangleFilled(pt1, pt2, pt3, color=color):
         triangle_pnts = np.array([pt1, pt2, pt3])
         # Create a contour with filled color in it
-        cv2.drawContours(image, [triangle_pnts],0,color,-1)
+        cv2.drawContours(image, [triangle_pnts],0,color,-1,lineType=cv2.LINE_AA)
     
     head = (frameDataDict[0][0],frameDataDict[0][1]-40 )
 
@@ -81,6 +87,25 @@ def drawHybridSkeleton(image, frameDataDict, color):
     cv2.line(image, frameDataDict[12], frameDataDict[16], color, thickness, lineType=cv2.LINE_AA)
     cv2.line(image, frameDataDict[7], frameDataDict[15], color, thickness, lineType=cv2.LINE_AA)
 
+
+def drawAbstractBody(image, frameDataDict):
+    
+    def drawTriangleFilled(pt1, pt2, pt3, color=color):
+        triangle_pnts = np.array([pt1, pt2, pt3])
+        # Create a contour with filled color in it
+        cv2.drawContours(image, [triangle_pnts],0,color,-1,lineType=cv2.LINE_AA)
+    
+    head = (frameDataDict[0][0],frameDataDict[0][1]-40)
+    r = int(abs(frameDataDict[1][0] - frameDataDict[2][0])/2)
+    # r = 20
+    cv2.circle(image, head, r, (0, 0, 255), -1)
+    drawTriangleFilled(frameDataDict[3], frameDataDict[4], frameDataDict[8],color = (0, 255, 0))
+    drawTriangleFilled(frameDataDict[3], frameDataDict[4], frameDataDict[7],color = (0, 0, 255))
+    drawTriangleFilled(frameDataDict[10], frameDataDict[11], frameDataDict[16],color = (0, 255, 0))
+    drawTriangleFilled(frameDataDict[11], frameDataDict[12], frameDataDict[15],color = (0, 0, 255))
+
+
+
 # draw opacity
 def opacityart(image, frameDataDict):
 
@@ -94,7 +119,8 @@ def opacityart(image, frameDataDict):
  
     overlay = image.copy()
     # manipulate overlay
-    drawHybridSkeleton(overlay, frameDataDict, colorvalue)
+    # drawHybridSkeleton(overlay, frameDataDict, colorvalue)
+    drawAbstractBody(overlay, frameDataDict)
     
     alpha = args["opacity"]  # default is 0.6
     beta = 1-alpha
@@ -106,6 +132,7 @@ def opacityWithTrail(image, frameDataDict, RFN):
     
     colorvalue=color
     thickness = args["thickness"]
+    thickness = 20  # override
     overlay = image.copy()
 
     TrailList = deque(maxlen=args["buffer"])
@@ -127,8 +154,17 @@ def opacityWithTrail(image, frameDataDict, RFN):
             colorvalue if args["multicolor"] else (255, 255, 255)
         
         if i > 0:  # This is for the Trail curve only.
+
+            # just the head
+            # ------
+            head = (frameDataDict[0][0],frameDataDict[0][1]-40)
+            r = int(abs(frameDataDict[1][0] - frameDataDict[2][0])/2)
+            # r = 20
+            cv2.circle(image, head, r, colorvalue, -1)
+            # ------
+
             # r = abs(TrailList[i-1][0] - TrailList[i-1][0])  # only a dot instead of circle
-            r = int(abs(TrailList[i-1][0] - TrailList[i][0])/8)
+            # r = int(abs(TrailList[i-1][0] - TrailList[i][0])/8)
             #cv2.line(image2, TrailList[i], TrailList[i-1], (255, 255, 255), 2, lineType=cv2.LINE_AA)
             #cv2.line(image2, TrailList[i], TrailList[i-1], (0, 0, 0), 1, lineType=cv2.LINE_AA)
                 
@@ -149,10 +185,9 @@ def opacityWithTrail(image, frameDataDict, RFN):
     TrailList2.clear()
     TrailList3.clear()
 
-    alpha = 0.5
+    alpha = args["opacity"]  # default is 0.6
     beta = 1-alpha
     cv2.addWeighted(overlay, alpha, image, beta, 0.0 , image)
-
 
 def opacityWithLoop(image, frameDataDict, RFN):
     
@@ -190,7 +225,7 @@ def opacityWithLoop(image, frameDataDict, RFN):
     TrailList2.clear()
     TrailList3.clear()
 
-    alpha = 0.5
+    alpha = args["opacity"]  # default is 0.6
     beta = 1-alpha
     cv2.addWeighted(overlay, alpha, image, beta, 0.0 , image)
 
@@ -198,7 +233,7 @@ def opacityWithLoop(image, frameDataDict, RFN):
 def Cloud(image, frameDataDict, RFN):
 
     colorvalue=color
-    thickness = 150
+    thickness = 100
     overlay = image.copy()
 
     TrailList = deque(maxlen=args["buffer"])
@@ -231,7 +266,8 @@ def Cloud(image, frameDataDict, RFN):
     TrailList2.clear()
     TrailList3.clear()
 
-    alpha = 0.5
+    # alpha = args["opacity"]  # default is 0.6
+    alpha = 0.8
     beta = 1-alpha
     cv2.addWeighted(overlay, alpha, image, beta, 0.0 , image)
 
@@ -279,13 +315,12 @@ def opacityWithSkeleton(image, frameDataDict):
     cv2.line(image, frameDataDict[7], frameDataDict[11], colorvalue, thickness, lineType=cv2.LINE_AA)
     cv2.line(image, frameDataDict[7], frameDataDict[15], colorvalue, thickness, lineType=cv2.LINE_AA)
     
-    alpha = 0.5
+    alpha = args["opacity"]  # default is 0.6
     beta = 1-alpha
     cv2.addWeighted(overlay, alpha, image, beta, 0.0 , image)
 
 
 # cryptoPunk
-
 def Body(image, frameDataDict):
 
     rarm=(frameDataDict[2],frameDataDict[4])
@@ -371,6 +406,76 @@ def Body(image, frameDataDict):
     drawHybridSkeleton(image, frameDataDict)  # manipulated image ;
 
     alpha = 0.8
+    beta = 1-alpha
+    cv2.addWeighted(overlay, alpha, image, beta, 0.0 , image)
+
+def maedaLinesVL(image, frameDataDict):
+    # VL : Vertical and Lower
+
+    # colorvalue=(255, 255, 255)
+    
+    colorvalue=color
+    if args["randomcolor"]:
+         colorvalue = (randrange(255), randrange(255), randrange(255))
+    elif args["draw_black"]:
+        colorvalue = (10, 10, 10)
+    else:
+        colorvalue if args["multicolor"] else (255, 255, 255)
+    
+    
+    # thickness = args["thickness"]
+    thickness = args["thickness"]
+    overlay = image.copy()
+
+    # just the head
+    # ------
+    head = (frameDataDict[0][0],frameDataDict[0][1]-40)
+    r = int(abs(frameDataDict[1][0] - frameDataDict[2][0])/2)
+    # r = 20
+    cv2.circle(image, head, r, colorvalue, -1)
+    # ------
+
+    '''
+    cv2.line(image, frameDataDict[3], (frameDataDict[3][0],height-40), colorvalue, thickness, lineType=cv2.LINE_AA)
+    cv2.line(image, frameDataDict[4], (frameDataDict[4][0],height-40), colorvalue, thickness, lineType=cv2.LINE_AA)
+    cv2.line(image, frameDataDict[7], (frameDataDict[7][0],height-40), colorvalue, thickness, lineType=cv2.LINE_AA)
+    cv2.line(image, frameDataDict[8], (frameDataDict[8][0],height-40), colorvalue, thickness, lineType=cv2.LINE_AA)
+    '''
+    
+    cv2.line(image, frameDataDict[3], (frameDataDict[3][0],40), colorvalue, thickness, lineType=cv2.LINE_AA)
+    cv2.line(image, frameDataDict[4], (frameDataDict[4][0],40), colorvalue, thickness, lineType=cv2.LINE_AA)
+    cv2.line(image, frameDataDict[7], (frameDataDict[7][0],40), colorvalue, thickness, lineType=cv2.LINE_AA)
+    cv2.line(image, frameDataDict[8], (frameDataDict[8][0],40), colorvalue, thickness, lineType=cv2.LINE_AA)
+    
+     
+    alpha = args["opacity"]  # default is 0.6
+    beta = 1-alpha
+    cv2.addWeighted(overlay, alpha, image, beta, 0.0 , image)
+
+ 
+def maedaLinesHL(image, frameDataDict):
+    colorvalue=(255, 255, 255)
+    # colorvalue = (50, 50, 50)
+    '''
+    colorvalue=color
+    if args["randomcolor"]:
+         colorvalue = (randrange(255), randrange(255), randrange(255))
+    elif args["draw_black"]:
+        colorvalue = (10, 10, 10)
+    else:
+        colorvalue if args["multicolor"] else (255, 255, 255)
+    '''
+    thickness = args["thickness"]
+    overlay = image.copy()
+
+    cv2.line(image, frameDataDict[9], (width-40,frameDataDict[9][1]), colorvalue, thickness, lineType=cv2.LINE_AA)
+    cv2.line(image, frameDataDict[11], (width-40,frameDataDict[11][1]), colorvalue, thickness, lineType=cv2.LINE_AA)
+    cv2.line(image, frameDataDict[13], (width-40,frameDataDict[13][1]), colorvalue, thickness, lineType=cv2.LINE_AA)
+    cv2.line(image, frameDataDict[10], (40,frameDataDict[10][1]), colorvalue, thickness, lineType=cv2.LINE_AA)
+    cv2.line(image, frameDataDict[12], (40,frameDataDict[12][1]), colorvalue, thickness, lineType=cv2.LINE_AA)
+    cv2.line(image, frameDataDict[14], (40,frameDataDict[14][1]), colorvalue, thickness, lineType=cv2.LINE_AA)
+    
+    alpha = args["opacity"]  # default is 0.6
     beta = 1-alpha
     cv2.addWeighted(overlay, alpha, image, beta, 0.0 , image)
 
@@ -516,9 +621,11 @@ if __name__== "__main__":
 
     # ---------------open read the video again for rendering this time ---------------
     
-    c = (randrange(255), randrange(255), randrange(255))
+    # IRM : initial random color
+    IRM = (randrange(255), randrange(255), randrange(255))
 
     cap2 = cv2.VideoCapture(args["input"])
+
     while cap2.isOpened():
         success, image2 = cap2.read()
         # RFN : render frame number
@@ -536,9 +643,11 @@ if __name__== "__main__":
             '''
             change color every x frames
             '''
-            x: int = 60
-            color = (randrange(255), randrange(255), randrange(255)) if RFN%x == 0 else c
-            c=color
+            x: int = 150
+            color = (randrange(255), randrange(255), randrange(255)) if RFN%x == 0 else IRM
+            IRM=color
+        else:
+            color = (10, 10, 10) if args["draw_black"] else (255, 255, 255)
 
         # print(dataForRendering[RFN])
 
@@ -546,7 +655,7 @@ if __name__== "__main__":
             image2 = cv2.xphoto.oilPainting(image2, 5, 1)
         
         if args["waterpaint"]:
-            image2 = cv2.stylization(image2, sigma_s=190, sigma_r=0.4)
+            image2 = cv2.stylization(image2, sigma_s=100, sigma_r=0.7)
         
         if args["black"]:
             image2 = image2*0
@@ -571,6 +680,12 @@ if __name__== "__main__":
         
         if args["cloud"]:
             Cloud(image2, dataForRendering[RFN], RFN)
+        
+        if args["maedalinesvl"]:
+            maedaLinesVL(image2, dataForRendering[RFN])
+        
+        if args["maedalineshl"]:
+            maedaLinesHL(image2, dataForRendering[RFN])
         
         # if args["art"]:
         # drawHybridSkeleton(image2, dataForRendering[RFN])
