@@ -655,7 +655,7 @@ if __name__== "__main__":
             image2 = cv2.xphoto.oilPainting(image2, 5, 1)
         
         if args["waterpaint"]:
-            image2 = cv2.stylization(image2, sigma_s=100, sigma_r=0.7)
+            image2 = cv2.stylization(image2, sigma_s=10, sigma_r=1.0)
         
         if args["black"]:
             image2 = image2*0
