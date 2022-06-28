@@ -132,7 +132,7 @@ def opacityWithTrail(image, frameDataDict, RFN):
     
     colorvalue=color
     thickness = args["thickness"]
-    thickness = 20  # override
+    # thickness = 20  # override
     overlay = image.copy()
 
     TrailList = deque(maxlen=args["buffer"])
@@ -159,6 +159,7 @@ def opacityWithTrail(image, frameDataDict, RFN):
             # ------
             head = (frameDataDict[0][0],frameDataDict[0][1]-40)
             r = int(abs(frameDataDict[1][0] - frameDataDict[2][0])/2)
+            r_trail_side_circle = int(abs(TrailList[i-1][0] - TrailList[i][0])/2)
             # r = 20
             cv2.circle(image, head, r, colorvalue, -1)
             # ------
@@ -169,17 +170,16 @@ def opacityWithTrail(image, frameDataDict, RFN):
             #cv2.line(image2, TrailList[i], TrailList[i-1], (0, 0, 0), 1, lineType=cv2.LINE_AA)
                 
             cv2.line(image, TrailList2[i], TrailList2[i-1], colorvalue, thickness, lineType=cv2.LINE_AA)
+            cv2.circle(image, (TrailList2[i-1][0]+5,TrailList2[i][1]), r_trail_side_circle, (0, 0, 255), -1)
             # cv2.line(image2, TrailList2[i], TrailList2[i-1], (0, 0, 0), 1, lineType=cv2.LINE_AA)
 
             cv2.line(image, TrailList3[i], TrailList3[i-1], colorvalue, thickness, lineType=cv2.LINE_AA)
-                
+            cv2.circle(image, (TrailList3[i-1][0]+5,TrailList3[i][1]), r_trail_side_circle, (0, 255, 0), -1)
             # cv2.line(image2, TrailList3[i], TrailList3[i-1], (0, 0, 0), 1, lineType=cv2.LINE_AA)
 
             #cv2.circle(image2, (TrailList[i-1][0]+5,TrailList[i][1]), r, (255, 255, 255), -1)
             # cv2.line(image2, (TrailList[i][0]+5,TrailList[i][1]), (TrailList[i-1][0]+5,TrailList[i][1]) , (255, 255, 255), 1, lineType=cv2.LINE_AA)  # those dashed lines
             #cv2.line(image2, TrailList2[i], TrailList2[i-1], (255, 255, 255), 1, lineType=cv2.LINE_AA)
-            #cv2.circle(image2, (TrailList2[i-1][0]+5,TrailList2[i][1]), r, (255, 255, 255), 1)
-            #cv2.circle(image2, (TrailList3[i-1][0]+5,TrailList3[i][1]), r, (255, 255, 255), 1)
             # cv2.line(image2, (TrailList2[i][0]+5,TrailList2[i][1]), (TrailList2[i-1][0]+5,TrailList2[i][1]) , (255, 255, 255), 1, lineType=cv2.LINE_AA)
     TrailList.clear()
     TrailList2.clear()
